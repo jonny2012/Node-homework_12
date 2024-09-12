@@ -8,6 +8,7 @@ router.get("/packages/:id", Controller.getOne)
 router.post("/package", Controller.create)
 router.put("/package/:id", Controller.updateOne)
 router.delete("/package/:id", Controller.deleteOne)
+router.put("/update-version/:id", Controller.updateVersion)
 
 
 

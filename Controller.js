@@ -1,7 +1,8 @@
+import { checkSymbol } from "./checkSymbol.js";
 import { db } from "./db.js";
 import { ObjectId } from "mongodb";
 
-const Packages = db.collection("packages"); // выбираю колекцию один раз для всех ендпоинтовь
+const Packages = db.collection("packages"); // выбираю колекцию один раз для всех ендпоинтов
 class Controller {
   async getAll(req, res) {
     try {
@@ -17,8 +18,8 @@ class Controller {
     try {
       const query = { _id: new ObjectId(req.params.id) };
       const result = await Packages.findOne(query);
-      const arrnew = JSON.parse(JSON.stringify(result).replace(/^/g, ""));
-      res.send(arrnew);
+
+      res.send(result);
     } catch (err) {
       console.error(err);
     }
@@ -35,12 +36,13 @@ class Controller {
   async updateOne(req, res) {
     try {
       const query = { _id: new ObjectId(req.params.id) };
-      const foundPackage = Packages.findOne(query);
+      const foundPackage =  await Packages.findOne(query)
       if (!foundPackage) {
         return res.json({ message: "Not found id" });
       }
-      const updates = { $push: req.body };
-      const result = await Packages.updateOne(query, updates);
+      const updatedData = checkSymbol(foundPackage);
+
+      const result = await Packages.updateOne(query, { $set: {updatedData} });
 
       if (result.modifiedCount === 0) {
         return res.json({ message: " User not found" });
@@ -51,6 +53,30 @@ class Controller {
       console.error(err);
     }
   }
+
+  async updateVersion(req, res) {
+    try {
+      const newVersion = req.body
+      const query = { _id: new ObjectId(req.params.id) };
+      const foundPackage =  await Packages.findOne(query)
+      if (!foundPackage) {
+        return res.json({ message: "Not found id" });
+      }
+
+      const result = await Packages.updateOne(query, { $set: newVersion });
+
+      if (result.modifiedCount === 0) {
+        return res.json({ message: " User not found" });
+      }
+
+      res.json({ message: "user Updated successfully" });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+
+
 
   async deleteOne(req, res) {
     try {
